@@ -28,4 +28,4 @@ You should now have a single JSON called `combined.json` with all the extracted 
 ## "The App"
 Thanks Claude! 👍🏾
 
-To update the data used by the app, just push the lastest `combined.json` to github. 
+To update the data used by the app, just push the lastest `combined.json` to github. When the app loads, it pulls data from the repo first so will automagically update.
