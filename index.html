@@ -204,6 +204,16 @@
       color: var(--text-light);
       padding: var(--spacing-lg);
     }
+
+    .error-message {
+      background-color: #ffebee;
+      color: #c62828;
+      padding: var(--spacing-md);
+      border-radius: var(--radius);
+      text-align: center;
+      margin-bottom: var(--spacing-lg);
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -211,6 +221,10 @@
     <h1>Random Recipe Selector</h1>
     <p>Select the number of random recipes you want to explore</p>
   </header>
+
+  <div class="error-message" id="error-message">
+    Unable to fetch recipes. Please try again later.
+  </div>
 
   <div class="controls">
     <div class="slider-container">
@@ -233,214 +247,51 @@
   </div>
 
   <script>
-    // Recipe data
-    const recipeData = [
-  {
-    "title": "20-Minute Green Vegie Spaghetti",
-    "ingredients": [
-      "2 garlic cloves",
-      "2 heads broccoli",
-      "mint",
-      "40g miso paste",
-      "40g roasted macadamias",
-      "500g spaghetti",
-      "2 x 150g peas",
-      "100g baby spinach leaves",
-      "2 x 100g vegan Greek-style feta",
-      "80ml (⅓ cup) extra virgin olive oil",
-      "2 tsp white wine vinegar"
-    ],
-    "url": "https://marleyspoon.com.au/menu/96387-20-minute-green-vegie-spaghetti-with-macadamia-sauce-vegan-feta"
-  },
-  {
-    "title": "Vietnamese Vegan 'Chicken' Banh Mi",
-    "ingredients": [
-      "1 carrot",
-      "1 Lebanese cucumber",
-      "20ml rice wine vinegar",
-      "2 sandwich rolls",
-      "200g plant-based chicken-style strips",
-      "15g Vietnamese pho seasoning",
-      "50g sweet chilli sauce",
-      "coriander",
-      "3 tsp sugar",
-      "1 tbs neutral-flavoured oil",
-      "1½ tsp soy sauce"
-    ],
-    "url": "https://marleyspoon.com.au/menu/146412-vietnamese-vegan-chicken-banh-mi-with-nuoc-cham-drizzle"
-  },
-  {
-    "title": "Vegan Mushroom 'Meat' Nachos",
-    "ingredients": [
-      "250g mushroom meat",
-      "10g South American seasoning",
-      "10g coriander, cumin and paprika seasoning",
-      "50g tomato paste",
-      "150g corn chips",
-      "1 lime",
-      "coriander",
-      "1 tomato",
-      "1 avocado",
-      "60g vegan sour cream",
-      "1 tsp olive oil",
-      "pinch of sugar",
-      "½ tsp white wine vinegar"
-    ],
-    "url": "https://marleyspoon.com.au/menu/263379-vegan-mushroom-meat-nachos-with-guacamole-and-vegan-sour-cream"
-  },
-  {
-    "title": "Vegan Veggie and Rice Bake",
-    "ingredients": [
-      "1 red onion",
-      "1 capsicum",
-      "1 celery stalk",
-      "1 garlic clove",
-      "2 vegetable stock cubes",
-      "10g Caribbean seasoning",
-      "150g basmati rice",
-      "250g cherry tomatoes",
-      "400g kidney beans",
-      "100g shredded vegan parmesan",
-      "20g sunflower seeds",
-      "1 spring onion",
-      "50g rocket leaves",
-      "250ml (1 cup) boiling water",
-      "1 tbs olive oil",
-      "1 tsp sugar",
-      "2 tsp red wine vinegar",
-      "2 tsp extra virgin olive oil"
-    ],
-    "url": "https://marleyspoon.com.au/menu/231126-vegan-veggie-and-rice-bake-with-beans-and-vegan-parmesan"
-  },
-  {
-    "title": "Vegan Green Thai Curry",
-    "ingredients": [
-      "300g jasmine rice",
-      "2 garlic cloves",
-      "2 carrots",
-      "300g green beans",
-      "makrut lime leaves",
-      "227g bamboo shoots",
-      "60g green curry paste",
-      "2 vegetable stock cubes",
-      "400ml coconut milk",
-      "40g peanuts",
-      "2 x 300g tofu",
-      "150g baby spinach leaves",
-      "1 tbs neutral-flavoured oil",
-      "160ml (⅔ cup) boiling water",
-      "2 tsp soy sauce",
-      "½ tsp sugar"
-    ],
-    "url": "https://marleyspoon.com.au/menu/69612-vegan-green-thai-curry-with-lime-leaves-bamboo-shoots"
-  },
-  {
-    "title": "Mexican Black Bean Power Bowl",
-    "ingredients": [
-      "125g brown rice",
-      "1 onion",
-      "300g corn kernels",
-      "1 bunch baby broccoli",
-      "1 tomato",
-      "400g black beans",
-      "10g South American seasoning",
-      "40ml vegan mayonnaise",
-      "20g chipotle in adobo sauce",
-      "50g vegan feta",
-      "2 tsp olive oil",
-      "3 tsp red wine vinegar",
-      "2 tsp extra virgin olive oil"
-    ],
-    "url": "https://marleyspoon.com.au/menu/372808-mexican-black-bean-power-bowl-with-vegan-feta-and-chipotle-mayonnaise"
-  },
-  {
-    "title": "Fast Vegan 'Chicken' Curry",
-    "ingredients": [
-      "2 garlic cloves",
-      "1 carrot",
-      "1 bunch pak choy",
-      "1 lime",
-      "150g vermicelli noodles",
-      "200g plant-based chicken-style strips",
-      "20g Singaporean mild curry powder",
-      "200ml coconut milk",
-      "50g baby spinach leaves",
-      "10g fried shallots",
-      "neutral-flavoured oil",
-      "3 tsp soy sauce",
-      "1 tsp sugar"
-    ],
-    "url": "https://marleyspoon.com.au/menu/297956-fast-vegan-chicken-curry-with-rice-noodles-and-crispy-shallots"
-  },
-  {
-    "title": "Vegan Vegie Burger",
-    "ingredients": [
-      "400g beetroot",
-      "1 onion",
-      "1 pineapple",
-      "4 vegie patties",
-      "4 white bread rolls",
-      "2 x 40ml vegan mayonnaise",
-      "60ml (¼ cup) tonkatsu sauce",
-      "150g mixed salad leaves",
-      "60ml (¼ cup) olive oil",
-      "2½ tbs red wine vinegar",
-      "1½ tbs sugar",
-      "2 tbs extra virgin olive oil"
-    ],
-    "url": "https://marleyspoon.com.au/menu/60400-vegan-vegie-burger-with-the-works"
-  },
-  {
-    "title": "Smoky Vegetable Bake",
-    "ingredients": [
-      "1 red onion",
-      "2 capsicums",
-      "2 celery stalks",
-      "2 garlic cloves",
-      "2 x 2 vegetable stock cubes",
-      "2 x 10g Caribbean seasoning",
-      "300g basmati rice",
-      "2 x 250g cherry tomatoes",
-      "2 x 400g kidney beans",
-      "2 x 100g shredded vegan parmesan",
-      "40g sunflower seeds",
-      "2 spring onions",
-      "150g rocket leaves",
-      "500ml (2 cups) boiling water",
-      "2 tbs olive oil",
-      "2 tsp sugar",
-      "1 tbs red wine vinegar",
-      "1 tbs extra virgin olive oil"
-    ],
-    "url": "https://marleyspoon.com.au/menu/220857-smoky-vegetable-bake-with-rice-beans-and-vegan-cheese"
-  },
-  {
-    "title": "Vegan Potato Gnocchi",
-    "ingredients": [
-      "3 garlic cloves",
-      "2 zucchini",
-      "1 eggplant",
-      "10g Italian seasoning",
-      "1 red onion",
-      "2 x 400g diced tomatoes",
-      "2 x 400g gnocchi",
-      "2g chilli flakes",
-      "80ml (⅓ cup) olive oil",
-      "2 tsp sugar",
-      "2 tsp balsamic vinegar"
-    ],
-    "url": "https://marleyspoon.com.au/menu/359698-vegan-potato-gnocchi-with-ratatouille-and-toasted-hemp-seeds"
-  }
-];
-    // Filter out any recipes with empty ingredients
-    const validRecipes = recipeData.filter(recipe => recipe.ingredients && recipe.ingredients.length > 0);
-
     // DOM elements
     const recipeCountInput = document.getElementById('recipe-count');
     const countDisplay = document.getElementById('count-display');
     const generateBtn = document.getElementById('generate-btn');
     const recipesContainer = document.getElementById('recipes');
     const loadingElement = document.getElementById('loading');
+    const errorMessage = document.getElementById('error-message');
+
+    // Recipe data storage
+    let validRecipes = [];
+    
+    // Fetch recipe data from GitHub
+    const dataUrl = 'https://raw.githubusercontent.com/diabolical-ninja/MarleySpoonRecipeSelector/refs/heads/main/combined.json';
+    
+    // Initialize the app by fetching recipe data
+    async function initApp() {
+      try {
+        loadingElement.style.display = 'block';
+        
+        const response = await fetch(dataUrl);
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        const recipeData = await response.json();
+        
+        // Filter out any recipes with empty ingredients
+        validRecipes = recipeData.filter(recipe => recipe.ingredients && recipe.ingredients.length > 0);
+        
+        loadingElement.style.display = 'none';
+        
+        // Enable button once data is loaded
+        generateBtn.disabled = false;
+        
+        // If no recipes are found
+        if (validRecipes.length === 0) {
+          recipesContainer.innerHTML = '<div class="empty-state">No recipes found in the data source</div>';
+        }
+        
+      } catch (error) {
+        console.error('Error fetching recipe data:', error);
+        errorMessage.style.display = 'block';
+        loadingElement.style.display = 'none';
+      }
+    }
 
     // Update count display when slider changes
     recipeCountInput.addEventListener('input', () => {
@@ -462,10 +313,13 @@
       }
       
       // Return first 'count' recipes
-      return shuffled.slice(0, count);
+      return shuffled.slice(0, Math.min(count, shuffled.length));
     }
 
     function generateRandomRecipes(count) {
+      // Hide error message if visible
+      errorMessage.style.display = 'none';
+      
       // Show loading state
       loadingElement.style.display = 'block';
       recipesContainer.innerHTML = '';
@@ -550,7 +404,8 @@
       const CACHE_NAME = 'recipe-selector-v1';
       const urlsToCache = [
         '/',
-        '/index.html'
+        '/index.html',
+        'https://raw.githubusercontent.com/diabolical-ninja/MarleySpoonRecipeSelector/refs/heads/main/combined.json'
       ];
 
       self.addEventListener('install', event => {
@@ -590,6 +445,9 @@
     // swLink.click();
     
     document.body.removeChild(swLink);
+
+    // Initialize the app
+    initApp();
   </script>
 </body>
 </html>
