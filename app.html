@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4CAF50">
+  <title>Random Recipe Selector</title>
+  <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUmFuZG9tIFJlY2lwZSBTZWxlY3RvciIsInNob3J0X25hbWUiOiJSZWNpcGVzIiwiZGVzY3JpcHRpb24iOiJTZWxlY3QgcmFuZG9tIHJlY2lwZXMgZnJvbSBhIGNvbGxlY3Rpb24iLCJzdGFydF91cmwiOiIvIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiI2ZmZmZmZiIsInRoZW1lX2NvbG9yIjoiIzRDQUY1MCJ9">
+  <style>
+    :root {
+      --primary: #4CAF50;
+      --primary-light: #A5D6A7;
+      --primary-dark: #2E7D32;
+      --text: #212121;
+      --text-light: #757575;
+      --background: #FAFAFA;
+      --card: #FFFFFF;
+      --border: #E0E0E0;
+      --spacing-xs: 0.5rem;
+      --spacing-sm: 1rem;
+      --spacing-md: 1.5rem;
+      --spacing-lg: 2rem;
+      --radius: 8px;
+      --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      background-color: var(--background);
+      color: var(--text);
+      line-height: 1.6;
+      padding: var(--spacing-md);
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: var(--spacing-lg);
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: var(--spacing-sm);
+      color: var(--primary-dark);
+    }
+
+    .controls {
+      background-color: var(--card);
+      padding: var(--spacing-md);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: var(--spacing-lg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    label {
+      display: block;
+      margin-bottom: var(--spacing-xs);
+      font-weight: 500;
+    }
+
+    .slider-container {
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .slider-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin: var(--spacing-sm) 0;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    button {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: var(--spacing-sm) var(--spacing-lg);
+      border-radius: var(--radius);
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .recipe-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: var(--spacing-md);
+    }
+
+    .recipe-card {
+      background-color: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .recipe-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .recipe-header {
+      padding: var(--spacing-sm);
+      border-bottom: 1px solid var(--border);
+      background-color: var(--primary-light);
+    }
+
+    .recipe-title {
+      font-size: 1.2rem;
+      margin-bottom: var(--spacing-xs);
+      color: var(--primary-dark);
+    }
+
+    .recipe-content {
+      padding: var(--spacing-sm);
+    }
+
+    .ingredients-title {
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-bottom: var(--spacing-xs);
+      color: var(--text-light);
+    }
+
+    .ingredients-list {
+      list-style-position: inside;
+      margin-bottom: var(--spacing-sm);
+      font-size: 0.9rem;
+    }
+
+    .ingredients-list li {
+      margin-bottom: 5px;
+    }
+
+    .recipe-link {
+      display: block;
+      background-color: var(--primary);
+      color: white;
+      text-align: center;
+      padding: var(--spacing-sm);
+      text-decoration: none;
+      border-radius: 0 0 var(--radius) var(--radius);
+      font-weight: 500;
+      transition: background-color 0.2s;
+    }
+
+    .recipe-link:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: var(--spacing-lg);
+    }
+
+    .loading-spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      border-top: 4px solid var(--primary);
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto var(--spacing-sm);
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 600px) {
+      .recipe-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .empty-state {
+      text-align: center;
+      color: var(--text-light);
+      padding: var(--spacing-lg);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Random Recipe Selector</h1>
+    <p>Select the number of random recipes you want to explore</p>
+  </header>
+
+  <div class="controls">
+    <div class="slider-container">
+      <label for="recipe-count">Number of Recipes</label>
+      <div class="slider-value" id="count-display">5</div>
+      <input type="range" id="recipe-count" min="1" max="10" value="5">
+    </div>
+    <button id="generate-btn">Generate Recipes</button>
+  </div>
+
+  <div class="loading" id="loading">
+    <div class="loading-spinner"></div>
+    <p>Finding delicious recipes for you...</p>
+  </div>
+
+  <div id="recipes" class="recipe-container">
+    <div class="empty-state">
+      Select the number of recipes and click "Generate Recipes" to get started
+    </div>
+  </div>
+
+  <script>
+    // Recipe data
+    const recipeData = [
+  {
+    "title": "20-Minute Green Vegie Spaghetti",
+    "ingredients": [
+      "2 garlic cloves",
+      "2 heads broccoli",
+      "mint",
+      "40g miso paste",
+      "40g roasted macadamias",
+      "500g spaghetti",
+      "2 x 150g peas",
+      "100g baby spinach leaves",
+      "2 x 100g vegan Greek-style feta",
+      "80ml (⅓ cup) extra virgin olive oil",
+      "2 tsp white wine vinegar"
+    ],
+    "url": "https://marleyspoon.com.au/menu/96387-20-minute-green-vegie-spaghetti-with-macadamia-sauce-vegan-feta"
+  },
+  {
+    "title": "Vietnamese Vegan 'Chicken' Banh Mi",
+    "ingredients": [
+      "1 carrot",
+      "1 Lebanese cucumber",
+      "20ml rice wine vinegar",
+      "2 sandwich rolls",
+      "200g plant-based chicken-style strips",
+      "15g Vietnamese pho seasoning",
+      "50g sweet chilli sauce",
+      "coriander",
+      "3 tsp sugar",
+      "1 tbs neutral-flavoured oil",
+      "1½ tsp soy sauce"
+    ],
+    "url": "https://marleyspoon.com.au/menu/146412-vietnamese-vegan-chicken-banh-mi-with-nuoc-cham-drizzle"
+  },
+  {
+    "title": "Vegan Mushroom 'Meat' Nachos",
+    "ingredients": [
+      "250g mushroom meat",
+      "10g South American seasoning",
+      "10g coriander, cumin and paprika seasoning",
+      "50g tomato paste",
+      "150g corn chips",
+      "1 lime",
+      "coriander",
+      "1 tomato",
+      "1 avocado",
+      "60g vegan sour cream",
+      "1 tsp olive oil",
+      "pinch of sugar",
+      "½ tsp white wine vinegar"
+    ],
+    "url": "https://marleyspoon.com.au/menu/263379-vegan-mushroom-meat-nachos-with-guacamole-and-vegan-sour-cream"
+  },
+  {
+    "title": "Vegan Veggie and Rice Bake",
+    "ingredients": [
+      "1 red onion",
+      "1 capsicum",
+      "1 celery stalk",
+      "1 garlic clove",
+      "2 vegetable stock cubes",
+      "10g Caribbean seasoning",
+      "150g basmati rice",
+      "250g cherry tomatoes",
+      "400g kidney beans",
+      "100g shredded vegan parmesan",
+      "20g sunflower seeds",
+      "1 spring onion",
+      "50g rocket leaves",
+      "250ml (1 cup) boiling water",
+      "1 tbs olive oil",
+      "1 tsp sugar",
+      "2 tsp red wine vinegar",
+      "2 tsp extra virgin olive oil"
+    ],
+    "url": "https://marleyspoon.com.au/menu/231126-vegan-veggie-and-rice-bake-with-beans-and-vegan-parmesan"
+  },
+  {
+    "title": "Vegan Green Thai Curry",
+    "ingredients": [
+      "300g jasmine rice",
+      "2 garlic cloves",
+      "2 carrots",
+      "300g green beans",
+      "makrut lime leaves",
+      "227g bamboo shoots",
+      "60g green curry paste",
+      "2 vegetable stock cubes",
+      "400ml coconut milk",
+      "40g peanuts",
+      "2 x 300g tofu",
+      "150g baby spinach leaves",
+      "1 tbs neutral-flavoured oil",
+      "160ml (⅔ cup) boiling water",
+      "2 tsp soy sauce",
+      "½ tsp sugar"
+    ],
+    "url": "https://marleyspoon.com.au/menu/69612-vegan-green-thai-curry-with-lime-leaves-bamboo-shoots"
+  },
+  {
+    "title": "Mexican Black Bean Power Bowl",
+    "ingredients": [
+      "125g brown rice",
+      "1 onion",
+      "300g corn kernels",
+      "1 bunch baby broccoli",
+      "1 tomato",
+      "400g black beans",
+      "10g South American seasoning",
+      "40ml vegan mayonnaise",
+      "20g chipotle in adobo sauce",
+      "50g vegan feta",
+      "2 tsp olive oil",
+      "3 tsp red wine vinegar",
+      "2 tsp extra virgin olive oil"
+    ],
+    "url": "https://marleyspoon.com.au/menu/372808-mexican-black-bean-power-bowl-with-vegan-feta-and-chipotle-mayonnaise"
+  },
+  {
+    "title": "Fast Vegan 'Chicken' Curry",
+    "ingredients": [
+      "2 garlic cloves",
+      "1 carrot",
+      "1 bunch pak choy",
+      "1 lime",
+      "150g vermicelli noodles",
+      "200g plant-based chicken-style strips",
+      "20g Singaporean mild curry powder",
+      "200ml coconut milk",
+      "50g baby spinach leaves",
+      "10g fried shallots",
+      "neutral-flavoured oil",
+      "3 tsp soy sauce",
+      "1 tsp sugar"
+    ],
+    "url": "https://marleyspoon.com.au/menu/297956-fast-vegan-chicken-curry-with-rice-noodles-and-crispy-shallots"
+  },
+  {
+    "title": "Vegan Vegie Burger",
+    "ingredients": [
+      "400g beetroot",
+      "1 onion",
+      "1 pineapple",
+      "4 vegie patties",
+      "4 white bread rolls",
+      "2 x 40ml vegan mayonnaise",
+      "60ml (¼ cup) tonkatsu sauce",
+      "150g mixed salad leaves",
+      "60ml (¼ cup) olive oil",
+      "2½ tbs red wine vinegar",
+      "1½ tbs sugar",
+      "2 tbs extra virgin olive oil"
+    ],
+    "url": "https://marleyspoon.com.au/menu/60400-vegan-vegie-burger-with-the-works"
+  },
+  {
+    "title": "Smoky Vegetable Bake",
+    "ingredients": [
+      "1 red onion",
+      "2 capsicums",
+      "2 celery stalks",
+      "2 garlic cloves",
+      "2 x 2 vegetable stock cubes",
+      "2 x 10g Caribbean seasoning",
+      "300g basmati rice",
+      "2 x 250g cherry tomatoes",
+      "2 x 400g kidney beans",
+      "2 x 100g shredded vegan parmesan",
+      "40g sunflower seeds",
+      "2 spring onions",
+      "150g rocket leaves",
+      "500ml (2 cups) boiling water",
+      "2 tbs olive oil",
+      "2 tsp sugar",
+      "1 tbs red wine vinegar",
+      "1 tbs extra virgin olive oil"
+    ],
+    "url": "https://marleyspoon.com.au/menu/220857-smoky-vegetable-bake-with-rice-beans-and-vegan-cheese"
+  },
+  {
+    "title": "Vegan Potato Gnocchi",
+    "ingredients": [
+      "3 garlic cloves",
+      "2 zucchini",
+      "1 eggplant",
+      "10g Italian seasoning",
+      "1 red onion",
+      "2 x 400g diced tomatoes",
+      "2 x 400g gnocchi",
+      "2g chilli flakes",
+      "80ml (⅓ cup) olive oil",
+      "2 tsp sugar",
+      "2 tsp balsamic vinegar"
+    ],
+    "url": "https://marleyspoon.com.au/menu/359698-vegan-potato-gnocchi-with-ratatouille-and-toasted-hemp-seeds"
+  }
+];
+    // Filter out any recipes with empty ingredients
+    const validRecipes = recipeData.filter(recipe => recipe.ingredients && recipe.ingredients.length > 0);
+
+    // DOM elements
+    const recipeCountInput = document.getElementById('recipe-count');
+    const countDisplay = document.getElementById('count-display');
+    const generateBtn = document.getElementById('generate-btn');
+    const recipesContainer = document.getElementById('recipes');
+    const loadingElement = document.getElementById('loading');
+
+    // Update count display when slider changes
+    recipeCountInput.addEventListener('input', () => {
+      countDisplay.textContent = recipeCountInput.value;
+    });
+
+    // Generate random recipes
+    generateBtn.addEventListener('click', () => {
+      const count = parseInt(recipeCountInput.value);
+      generateRandomRecipes(count);
+    });
+
+    function getRandomRecipes(count) {
+      // Shuffle array using Fisher-Yates algorithm
+      const shuffled = [...validRecipes];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      
+      // Return first 'count' recipes
+      return shuffled.slice(0, count);
+    }
+
+    function generateRandomRecipes(count) {
+      // Show loading state
+      loadingElement.style.display = 'block';
+      recipesContainer.innerHTML = '';
+      
+      // Simulate loading for smoother UX
+      setTimeout(() => {
+        const randomRecipes = getRandomRecipes(count);
+        displayRecipes(randomRecipes);
+        loadingElement.style.display = 'none';
+      }, 700);
+    }
+
+    function displayRecipes(recipes) {
+      recipesContainer.innerHTML = '';
+      
+      if (recipes.length === 0) {
+        recipesContainer.innerHTML = '<div class="empty-state">No recipes found</div>';
+        return;
+      }
+      
+      recipes.forEach(recipe => {
+        const recipeCard = document.createElement('div');
+        recipeCard.className = 'recipe-card';
+        
+        // Create recipe header
+        const recipeHeader = document.createElement('div');
+        recipeHeader.className = 'recipe-header';
+        
+        const recipeTitle = document.createElement('h2');
+        recipeTitle.className = 'recipe-title';
+        recipeTitle.textContent = recipe.title;
+        recipeHeader.appendChild(recipeTitle);
+        
+        // Create recipe content
+        const recipeContent = document.createElement('div');
+        recipeContent.className = 'recipe-content';
+        
+        const ingredientsTitle = document.createElement('h3');
+        ingredientsTitle.className = 'ingredients-title';
+        ingredientsTitle.textContent = 'Ingredients:';
+        recipeContent.appendChild(ingredientsTitle);
+        
+        const ingredientsList = document.createElement('ul');
+        ingredientsList.className = 'ingredients-list';
+        recipe.ingredients.forEach(ingredient => {
+          const listItem = document.createElement('li');
+          listItem.textContent = ingredient;
+          ingredientsList.appendChild(listItem);
+        });
+        recipeContent.appendChild(ingredientsList);
+        
+        // Create recipe link
+        const recipeLink = document.createElement('a');
+        recipeLink.className = 'recipe-link';
+        recipeLink.href = recipe.url;
+        recipeLink.target = '_blank';
+        recipeLink.textContent = 'View Recipe';
+        
+        // Assemble recipe card
+        recipeCard.appendChild(recipeHeader);
+        recipeCard.appendChild(recipeContent);
+        recipeCard.appendChild(recipeLink);
+        
+        recipesContainer.appendChild(recipeCard);
+      });
+    }
+
+    // Register service worker for PWA functionality
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').then(registration => {
+          console.log('ServiceWorker registration successful');
+        }).catch(err => {
+          console.log('ServiceWorker registration failed: ', err);
+        });
+      });
+    }
+
+    // Create a simple service worker that can be included in the page
+    const swScript = `
+      // This is a simple service worker that caches the app shell
+      const CACHE_NAME = 'recipe-selector-v1';
+      const urlsToCache = [
+        '/',
+        '/index.html'
+      ];
+
+      self.addEventListener('install', event => {
+        event.waitUntil(
+          caches.open(CACHE_NAME)
+            .then(cache => {
+              return cache.addAll(urlsToCache);
+            })
+        );
+      });
+
+      self.addEventListener('fetch', event => {
+        event.respondWith(
+          caches.match(event.request)
+            .then(response => {
+              if (response) {
+                return response;
+              }
+              return fetch(event.request);
+            })
+        );
+      });
+    `;
+
+    // Create the service worker file dynamically
+    const blob = new Blob([swScript], {type: 'application/javascript'});
+    const swURL = URL.createObjectURL(blob);
+    
+    // Create a link to download the service worker file
+    const swLink = document.createElement('a');
+    swLink.style.display = 'none';
+    swLink.href = swURL;
+    swLink.download = 'sw.js';
+    document.body.appendChild(swLink);
+    
+    // Only uncomment this in a real scenario when hosting the app
+    // swLink.click();
+    
+    document.body.removeChild(swLink);
+  </script>
+</body>
+</html>
